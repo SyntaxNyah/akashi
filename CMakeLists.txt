@@ -11,6 +11,15 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 6.4 REQUIRED COMPONENTS Core Network WebSockets Sql)
 find_package(Qt6 REQUIRED COMPONENTS Core Network WebSockets Sql)
 
+# Lua 5.4 scripting support (install lua5.4-dev on Debian/Ubuntu or lua on macOS/Windows)
+find_package(Lua 5.4 QUIET)
+if(LUA_FOUND)
+    message(STATUS "Lua ${LUA_VERSION_STRING} found — scripting support enabled")
+    add_compile_definitions(AKASHI_LUA_ENABLED)
+else()
+    message(STATUS "Lua 5.4 not found — scripting support disabled (install liblua5.4-dev to enable)")
+endif()
+
 qt_standard_project_setup()
 qt_add_executable(akashi
   src/commands/area.cpp
@@ -85,6 +94,8 @@ qt_add_executable(akashi
   src/akashiutils.h
   src/aoclient.cpp
   src/aoclient.h
+  src/lua_engine.cpp
+  src/lua_engine.h
   src/area_data.cpp
   src/area_data.h
   src/command_extension.cpp
@@ -119,6 +130,11 @@ target_link_libraries(akashi PRIVATE
     Qt6::Network
     Qt6::WebSockets
 )
+
+if(LUA_FOUND)
+    target_include_directories(akashi PRIVATE ${LUA_INCLUDE_DIR})
+    target_link_libraries(akashi PRIVATE ${LUA_LIBRARIES})
+endif()
 
 target_include_directories(akashi PRIVATE src src/logger src/network src/packet)
 

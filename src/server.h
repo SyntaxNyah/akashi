@@ -41,6 +41,7 @@ class CommandExtensionCollection;
 class ConfigManager;
 class DBManager;
 class Discord;
+class LuaEngine;
 class MusicManager;
 class ULogger;
 
@@ -311,6 +312,13 @@ class Server : public QObject
     CommandExtensionCollection *getCommandExtensionCollection();
 
     /**
+     * @brief Returns a pointer to the Lua scripting engine.
+     *
+     * @return Pointer to the LuaEngine instance, or nullptr if Lua is not compiled in.
+     */
+    LuaEngine *getLuaEngine();
+
+    /**
      * @brief The server-wide global timer.
      */
     QTimer *timer;
@@ -438,6 +446,11 @@ class Server : public QObject
      * @brief Handles all musiclists.
      */
     MusicManager *music_manager;
+
+    /**
+     * @brief Lua scripting engine (nullptr when Lua is not available).
+     */
+    LuaEngine *lua_engine = nullptr;
 
     /**
      * @brief The port through which the server will accept WebSocket connections.

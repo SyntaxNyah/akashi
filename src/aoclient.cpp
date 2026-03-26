@@ -20,6 +20,7 @@
 #include "area_data.h"
 #include "command_extension.h"
 #include "config_manager.h"
+#include "lua_engine.h"
 #include "packet/packet_factory.h"
 #include "server.h"
 
@@ -185,6 +186,12 @@ void AOClient::clientDisconnected()
         arup(ARUPType::LOCKED, true);
     }
     arup(ARUPType::CM, true);
+
+#ifdef AKASHI_LUA_ENABLED
+    if (LuaEngine *l_lua = server->getLuaEngine())
+        l_lua->callLeaveHook(clientId());
+#endif
+
     emit clientSuccessfullyDisconnected(clientId());
 }
 
@@ -373,6 +380,15 @@ void AOClient::handleCommand(QString command, int argc, QStringList argv)
         sendServerMessage("The expected syntax for this command is: \n" + ConfigManager::commandHelp(command).usage);
         return;
     }
+
+#ifdef AKASHI_LUA_ENABLED
+    // Give Lua scripts a chance to intercept the command.
+    // If the hook returns true the C++ handler is skipped entirely.
+    if (LuaEngine *l_lua = server->getLuaEngine()) {
+        if (l_lua->callCommandHook(clientId(), l_target_command, argv))
+            return;
+    }
+#endif
 
     (this->*(l_command.action))(argc, argv);
 }

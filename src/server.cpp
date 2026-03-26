@@ -25,6 +25,7 @@
 #include "db_manager.h"
 #include "discord.h"
 #include "logger/u_logger.h"
+#include "lua_engine.h"
 #include "music_manager.h"
 #include "network/network_socket.h"
 #include "packet/packet_factory.h"
@@ -54,6 +55,11 @@ Server::Server(int p_ws_port, QObject *parent) :
     connect(this, &Server::logConnectionAttempt, logger, &ULogger::logConnectionAttempt);
 
     AOPacket::registerPackets();
+
+#ifdef AKASHI_LUA_ENABLED
+    lua_engine = new LuaEngine(this, this);
+    lua_engine->loadScripts("config/scripts");
+#endif
 }
 
 void Server::start()
@@ -483,6 +489,11 @@ ACLRolesHandler *Server::getACLRolesHandler()
 CommandExtensionCollection *Server::getCommandExtensionCollection()
 {
     return command_extension_collection;
+}
+
+LuaEngine *Server::getLuaEngine()
+{
+    return lua_engine;
 }
 
 void Server::allowMessage()

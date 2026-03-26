@@ -1,5 +1,6 @@
 #include "packet/packet_rd.h"
 #include "config_manager.h"
+#include "lua_engine.h"
 #include "server.h"
 
 #include <QDebug>
@@ -64,4 +65,9 @@ void PacketRD::handlePacket(AreaData *area, AOClient &client) const
     emit client.joined();
     area->addClient(-1, client.clientId());
     client.arup(client.ARUPType::PLAYER_COUNT, true); // Tell everyone there is a new player
+
+#ifdef AKASHI_LUA_ENABLED
+    if (LuaEngine *l_lua = client.getServer()->getLuaEngine())
+        l_lua->callJoinHook(client.clientId());
+#endif
 }
